@@ -1,3 +1,7 @@
+// ========================== AUTH SERVICE ==========================
+// Servicio con la lógica principal de autenticación.
+// Se comunica con el repositorio de usuarios y maneja JWT, bcrypt y envío de correos.
+
 // Dependencias externas
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -12,14 +16,10 @@ import UserRepository from "../repositories/user.repository.js";
 // Utilidades
 import { ServerError } from "../utils/customError.utils.js";
 
-// ========================== AUTH SERVICE ==========================
-// Servicio con la lógica principal de autenticación.
-// Se comunica con el repositorio de usuarios y maneja JWT, bcrypt y envío de correos.
-
 class AuthService {
   /* =============== REGISTRO E INICIO DE SESIÓN =============== */
   /* ---------- REGISTER ---------- */
-  static async register(username, email, password) {
+  static async register(firstName, lastName, phoneNumber, email, password) {
     // Verifica si el email ya está registrado en la DB
     const user = await UserRepository.getUserByEmail(email);
     if (user) {
@@ -30,13 +30,15 @@ class AuthService {
     const password_hashed = await bcrypt.hash(password, 12);
 
     // Guarda el usuario en la DB
-    const user_created = await UserRepository.createUser(
-      username,
-      email,
-      password_hashed
-    );
+    await UserRepository.createUser({
+      firstName: firstName,
+      lastName: lastName,
+      phoneNumber: phoneNumber,
+      email: email,
+      password: password_hashed,
+    });
 
-    return user_created;
+    return true;
   }
 
   /* ---------- LOGIN ---------- */
@@ -57,13 +59,17 @@ class AuthService {
     const authorization_token = jwt.sign(
       {
         id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
-        username: user.username,
+        phoneNumber: user.phoneNumber,
+        isAdmin: user.isAdmin,
+        isVerified: user.isVerified,
       },
       ENVIRONMENT.JWT_SECRET_KEY
     );
 
-    return { authorization_token };
+    return authorization_token;
   }
 
   /* =============== VERIFICACIÓN DE CORREO =============== */
@@ -92,11 +98,11 @@ class AuthService {
       .sendMail({
         from: ENVIRONMENT.GMAIL_USER,
         to: email,
-        subject: "Verificacion de cuenta",
+        subject: "Verificación de cuenta",
         html: `
-      <h1>Bienvenido ${user.username}</h1>
-      <h2>Por favor haz click en el siguiente enlace para verificar tu cuenta y así finalizar el proceso de registro</h2>
-      <a href="${ENVIRONMENT.URL_API_BACKEND}/api/auth/verify-email/${verification_token}">Verificar cuenta</a>`,
+          <h1>Bienvenido ${user.firstName}</h1>
+          <h2>Por favor haz click en el siguiente enlace para verificar tu cuenta: </h2>
+          <a href="${ENVIRONMENT.URL_API_BACKEND}/api/auth/verify-email/${verification_token}">Verificar cuenta</a>`,
       })
       .catch((error) => {
         console.error("Error enviando el correo: ", error);
@@ -113,9 +119,10 @@ class AuthService {
       );
 
       // Actualiza dato de usuario en la DB (isVerified)
-      await UserRepository.updateById(payload.user_id, { isVerified: true });
+      await UserRepository.updateUserById(payload.user_id, { isVerified: true });
 
       return true;
+
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw new ServerError(400, "El token ha expirado");
@@ -132,17 +139,14 @@ class AuthService {
     // Verifica si existe un usuario con ese email en la DB
     const user = await UserRepository.getUserByEmail(email);
     if (!user) {
-      throw new ServerError(
-        404,
-        "Usuario no encontrado. Por favor, verifica el email e intenta nuevamente"
-      );
+      throw new ServerError(404, "Usuario no encontrado. Por favor, verifica el email e intenta nuevamente");
     }
 
     // Genera token temporal (expira en 30 minutos)
     const reset_token = jwt.sign(
       { user_id: user._id },
       ENVIRONMENT.JWT_SECRET_KEY,
-      { expiresIn: "30m" }
+      { expiresIn: "10m" }
     );
 
     // Envia email con link para continuar con el proceso de reset
@@ -150,31 +154,14 @@ class AuthService {
       .sendMail({
         from: ENVIRONMENT.GMAIL_USER,
         to: email,
-        subject: "Restablecer contraseña",
+        subject: "Restablecimiento de contraseña",
         html: `
-        <h1>Hola ${user.username}</h1>
-        <p>Haz clic en el siguiente enlace para restablecer tu contraseña</p>
-        <a href="${ENVIRONMENT.URL_API_BACKEND}/api/auth/verify-password-reset/${reset_token}">Restablecer contraseña</a>
+          <h1>Hola ${user.firstName}</h1>
+          <p>Haz clic en el siguiente enlace para restablecer tu contraseña: </p>
+          <a href="${ENVIRONMENT.URL_API_BACKEND}/api/auth/reset-password/${reset_token}">Restablecer contraseña</a>
       `,
       })
       .catch((error) => console.log("Error enviando el correo: ", error));
-  }
-
-  /* ---------- VERIFY RESET PASSWORD TOKEN ---------- */
-  static async verifyResetPasswordToken(reset_token) {
-    try {
-      // Verifica que el token JWT sea válido
-      const payload = jwt.verify(reset_token, ENVIRONMENT.JWT_SECRET_KEY);
-      
-      return true;
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new ServerError(400, "El token ha expirado");
-      } else if (error instanceof jwt.JsonWebTokenError) {
-        throw new ServerError(400, "El token es inválido");
-      }
-      throw error;
-    }
   }
 
   /* ---------- RESET PASSWORD ---------- */
@@ -200,7 +187,7 @@ class AuthService {
       const password_hashed = await bcrypt.hash(newPassword, 12);
 
       // Actualiza dato del usuario en la DB (password)
-      await UserRepository.updateById(user._id, { password: password_hashed });
+      await UserRepository.updateUserById(user._id, { password: password_hashed });
 
       return true;
     } catch (error) {

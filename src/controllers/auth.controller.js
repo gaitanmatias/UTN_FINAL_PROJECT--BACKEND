@@ -1,10 +1,10 @@
-import { validationResult } from "express-validator";
-import AuthService from "../services/auth.service.js";
-
 // ========================== AUTH CONTROLLER ==========================
 // Controlador encargado de manejar la autenticación de usuarios.
 // Contiene endpoints para registro, login, verificación de correo y recuperación de contraseña.
 
+import { validationResult } from "express-validator";
+import { validateRequest } from "../utils/validateRequest.utils.js";
+import AuthService from "../services/auth.service.js";
 
 class AuthController {
   /* =============== REGISTRO E INICIO DE SESIÓN =============== */
@@ -12,31 +12,26 @@ class AuthController {
   static async register(req, res) {
     try {
       // Validaciones de express-validator
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          ok: false,
-          status: 400,
-          message: "Errores de validación",
-          errors: errors.array().map((err) => ({
-            field: err.path,
-            message: err.msg,
-          })),
-        });
-      }
+      if (!validateRequest(req, res)) return;
 
-      const { username, email, password } = req.body;
-      const response = await AuthService.register(username, email, password);
-      AuthService.sendEmailVerification(email).catch(err =>
+      const { firstName, lastName, phoneNumber, email, password } = req.body;
+      await AuthService.register(
+        firstName,
+        lastName,
+        phoneNumber,
+        email,
+        password
+      );
+      AuthService.sendEmailVerification(email).catch((err) =>
         console.error("Error enviando mail de verificación:", err)
-      );      
+      );
 
       return res.status(201).json({
         ok: true,
         status: 201,
         message: "El usuario se ha registrado correctamente",
-        data: response,
       });
+
     } catch (error) {
       const status = error.status || 500;
       const message = error.message || "Error interno del servidor";
@@ -48,18 +43,7 @@ class AuthController {
   static async login(req, res) {
     try {
       // Validaciones de express-validator
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          ok: false,
-          status: 400,
-          message: "Errores de validación",
-          errors: errors.array().map((err) => ({
-            field: err.path,
-            message: err.msg,
-          })),
-        });
-      }
+      if (!validateRequest(req, res)) return;
 
       const { email, password } = req.body;
       const authorization_token = await AuthService.login(email, password);
@@ -70,6 +54,7 @@ class AuthController {
         message: "Sesión iniciada correctamente",
         data: { authorization_token },
       });
+
     } catch (error) {
       const status = error.status || 500;
       const message = error.message || "Error interno del servidor";
@@ -78,32 +63,22 @@ class AuthController {
     }
   }
 
-
   /* =============== VERIFICACIÓN DE CORREO =============== */
   /* ---------- SEND EMAIL VERIFICATION ---------- */
   static async sendEmailVerification(req, res) {
     try {
       // Validaciones de express-validator
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          ok: false,
-          status: 400,
-          message: "Errores de validación",
-          errors: errors.array().map((err) => ({
-            field: err.path,
-            message: err.msg,
-          })),
-        });
-      }
+      if (!validateRequest(req, res)) return;
 
       const { email } = req.body;
       await AuthService.sendEmailVerification(email);
+
       return res.status(200).json({
         ok: true,
         status: 200,
         message: "Se ha enviado un correo de verificación",
       });
+
     } catch (error) {
       const status = error.status || 500;
       const message = error.message || "Error interno del servidor";
@@ -116,11 +91,13 @@ class AuthController {
     try {
       const { verification_token } = req.params;
       await AuthService.verifyEmail(verification_token);
+
       return res.status(200).json({
         ok: true,
         status: 200,
         message: "Verificación de correo exitosa",
       });
+
     } catch (error) {
       const status = error.status || 500;
       const message = error.message || "Error interno del servidor";
@@ -128,24 +105,12 @@ class AuthController {
     }
   }
 
-
   /* =============== REESTABLECIMIENTO DE CONTRASEÑA =============== */
   /* ---------- FORGOT PASSWORD ---------- */
   static async forgotPassword(req, res) {
     try {
       // Validaciones de express-validator
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          ok: false,
-          status: 400,
-          message: "Errores de validación",
-          errors: errors.array().map((err) => ({
-            field: err.path,
-            message: err.msg,
-          })),
-        });
-      }
+      if (!validateRequest(req, res)) return;
 
       const { email } = req.body;
       const response = await AuthService.forgotPassword(email);
@@ -156,32 +121,7 @@ class AuthController {
         message: "Se ha enviado un enlace para restablecer la contraseña",
         data: response,
       });
-    } catch (error) {
-      const status = error.status || 500;
-      const message = error.message || "Error interno del servidor";
-      return res.status(status).json({ ok: false, status, message });
-    }
-  }
 
-  /* ---------- VERIFY RESET PASSWORD TOKEN ---------- */
-  static async verifyResetPasswordToken(req, res) {
-    try {
-      const { reset_token } = req.params;
-      const is_valid = await AuthService.verifyResetPasswordToken(reset_token);
-
-      if (!is_valid) {
-        return res.status(400).json({
-          ok: false,
-          status: 400,
-          message: "Token inválido o expirado",
-        });
-      }
-
-      return res.status(200).json({
-        ok: true,
-        status: 200,
-        message: "Token válido",
-      })
     } catch (error) {
       const status = error.status || 500;
       const message = error.message || "Error interno del servidor";
@@ -192,6 +132,9 @@ class AuthController {
   /* ---------- RESET PASSWORD ---------- */
   static async resetPassword(req, res) {
     try {
+      // Validaciones de express-validator
+      if (!validateRequest(req, res)) return;
+
       const { newPassword } = req.body;
       const { reset_token } = req.params;
       await AuthService.resetPassword(newPassword, reset_token);
@@ -199,8 +142,9 @@ class AuthController {
       return res.status(200).json({
         ok: true,
         status: 200,
-        message:"Contraseña restablecida correctamente",
+        message: "Contraseña restablecida correctamente",
       });
+
     } catch (error) {
       const status = error.status || 500;
       const message = error.message || "Error interno del servidor";
