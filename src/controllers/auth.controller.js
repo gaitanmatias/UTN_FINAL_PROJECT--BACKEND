@@ -20,6 +20,7 @@ class AuthController {
       email,
       password
     );
+    
     AuthService.sendEmailVerification(email).catch((err) =>
       console.error("Error enviando mail de verificación:", err)
     );
@@ -53,8 +54,8 @@ class AuthController {
     // Validaciones de express-validator
     if (!validateRequest(req, res)) return;
 
-    const { email } = req.body;
-    await AuthService.sendEmailVerification(email);
+    const user_email  = req.user.email;
+    await AuthService.sendEmailVerification(user_email);
 
     return res.status(200).json({
       ok: true,

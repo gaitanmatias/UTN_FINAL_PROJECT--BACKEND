@@ -5,14 +5,8 @@ import UserModel from "../models/user.model.js";
 
 class UserRepository {
   /* ----- CREAR USUARIO ----- */
-  static async createUser(firstName, lastName, phoneNumber, email, password) {
-    const user = await UserModel.create({
-      firstName,
-      lastName,
-      phoneNumber,
-      email,
-      password,
-    });
+  static async createUser(userData) {
+    const user = await UserModel.create(userData);
     return user;
   }
 

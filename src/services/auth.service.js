@@ -31,10 +31,10 @@ class AuthService {
 
     // Guarda el usuario en la DB
     await UserRepository.createUser({
-      firstName: firstName,
-      lastName: lastName,
-      phoneNumber: phoneNumber,
-      email: email,
+      firstName,
+      lastName,
+      phoneNumber,
+      email,
       password: password_hashed,
     });
 
@@ -74,9 +74,9 @@ class AuthService {
 
   /* =============== VERIFICACIÓN DE CORREO =============== */
   /* ---------- SEND EMAIL VERIFICATION ---------- */
-  static async sendEmailVerification(email) {
+  static async sendEmailVerification(user_email) {
     // Verifica si existe un usuario con ese email y que no este verificado en la DB
-    const user = await UserRepository.getUserByEmail(email);
+    const user = await UserRepository.getUserByEmail(user_email);
     if (!user) {
       throw new ServerError(404, "El email no se encuentra registrado");
     } else if (user.isVerified) {
@@ -86,7 +86,7 @@ class AuthService {
     // Genera token de verificación temporal (expira en 1 día)
     const verification_token = jwt.sign(
       {
-        email: email,
+        email: user.email,
         user_id: user._id,
       },
       ENVIRONMENT.JWT_SECRET_KEY,
@@ -97,7 +97,7 @@ class AuthService {
     transporter
       .sendMail({
         from: ENVIRONMENT.GMAIL_USER,
-        to: email,
+        to: user.email,
         subject: "Verificación de cuenta",
         html: `
           <h1>Bienvenido ${user.firstName}</h1>

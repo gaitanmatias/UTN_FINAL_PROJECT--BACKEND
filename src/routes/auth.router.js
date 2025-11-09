@@ -14,6 +14,9 @@ import rateLimit from "express-rate-limit";
 // Controladores
 import AuthController from "../controllers/auth.controller.js";
 
+// Middlewares
+import authMiddleware from "../middlewares/auth.middleware.js";
+
 // Función para definir el límite de solicitudes en un intervalo de tiempo
 const createRateLimiter = (maxRequests, timeInterval) =>
   rateLimit({
@@ -89,13 +92,8 @@ auth_router.post(
 /* ---------- RUTA: SEND_EMAIL_VERIFICATION ---------- */
 auth_router.post(
   "/send-email-verification",
+  authMiddleware,
   createRateLimiter(3, 5),
-  [
-    body("email")
-    .trim()
-    .isEmail()
-    .withMessage("Debe ingresar un email válido")
-  ],
   AuthController.sendEmailVerification
 );
 /* ---------- RUTA: VERIFY_EMAIL ---------- */
