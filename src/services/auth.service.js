@@ -102,7 +102,7 @@ class AuthService {
         html: `
           <h1>Bienvenido ${user.firstName}</h1>
           <h2>Por favor haz click en el siguiente enlace para verificar tu cuenta: </h2>
-          <a href="${ENVIRONMENT.URL_API_BACKEND}/api/auth/verify-email/${verification_token}">Verificar cuenta</a>`,
+          <a href="${ENVIRONMENT.URL_FRONTEND}/auth/verify-email/${verification_token}">Verificar cuenta</a>`,
       })
       .catch((error) => {
         console.error("Error enviando el correo: ", error);
@@ -158,14 +158,14 @@ class AuthService {
         html: `
           <h1>Hola ${user.firstName}</h1>
           <p>Haz clic en el siguiente enlace para restablecer tu contraseña: </p>
-          <a href="${ENVIRONMENT.URL_API_BACKEND}/api/auth/reset-password/${reset_token}">Restablecer contraseña</a>
+          <a href="${ENVIRONMENT.URL_FRONTEND}/auth/reset-password/${reset_token}">Restablecer contraseña</a>
       `,
       })
       .catch((error) => console.log("Error enviando el correo: ", error));
   }
 
   /* ---------- RESET PASSWORD ---------- */
-  static async resetPassword(newPassword, reset_token) {
+  static async resetPassword(newPassword, confirmPassword, reset_token) {
     try {
       // Verifica que el token JWT sea válido
       const payload = jwt.verify(reset_token, ENVIRONMENT.JWT_SECRET_KEY);
@@ -173,6 +173,11 @@ class AuthService {
       // Busca al usuario por el id en la DB
       const user = await UserRepository.getUserById(payload.user_id);
       if (!user) throw new ServerError(404, "Usuario no encontrado");
+
+      // Verifica que las passwords coincidan
+      if (newPassword !== confirmPassword) {
+        throw new ServerError(400, "Las contraseñas no coinciden");
+      }
 
       // Verifica que la password no sea la misma
       const is_same_password = await bcrypt.compare(newPassword, user.password);

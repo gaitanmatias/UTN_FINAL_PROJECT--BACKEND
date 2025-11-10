@@ -44,7 +44,7 @@ class AuthController {
       ok: true,
       status: 200,
       message: "Sesión iniciada correctamente",
-      data: { authorization_token },
+      token: authorization_token
     });
   }
 
@@ -98,9 +98,9 @@ class AuthController {
     // Validaciones de express-validator
     if (!validateRequest(req, res)) return;
 
-    const { newPassword } = req.body;
+    const { newPassword, confirmPassword } = req.body;
     const { reset_token } = req.params;
-    await AuthService.resetPassword(newPassword, reset_token);
+    await AuthService.resetPassword(newPassword, confirmPassword, reset_token);
 
     return res.status(200).json({
       ok: true,

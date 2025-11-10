@@ -101,8 +101,8 @@ auth_router.get(
   "/verify-email/:verification_token",
   [
     param("verification_token")
-      .notEmpty()
-      .withMessage("El token de verificación es obligatorio"),
+    .notEmpty()
+    .withMessage("El token de verificación es obligatorio"),
   ],
   AuthController.verifyEmail
 );
@@ -126,6 +126,10 @@ auth_router.post(
   "/reset-password/:reset_token",
   [
     body("newPassword")
+      .isLength({ min: 8 })
+      .withMessage("La contraseña debe tener al menos 8 caracteres"),
+      
+    body("confirmPassword")
       .isLength({ min: 8 })
       .withMessage("La contraseña debe tener al menos 8 caracteres"),
 
