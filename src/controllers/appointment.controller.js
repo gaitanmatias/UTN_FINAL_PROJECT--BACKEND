@@ -43,10 +43,12 @@ class AppointmentController {
     if (!validateRequest(req, res)) return;
 
     const { date } = req.query;
+    const userId = req.user._id;
     const isAdmin = req.user.isAdmin;
 
     const appointments = await AppointmentService.getAppointmentsByDate(
       date,
+      userId,
       isAdmin
     );
     

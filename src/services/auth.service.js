@@ -66,7 +66,8 @@ class AuthService {
         isAdmin: user.isAdmin,
         isVerified: user.isVerified,
       },
-      ENVIRONMENT.JWT_SECRET_KEY
+      ENVIRONMENT.JWT_SECRET_KEY,
+      { expiresIn: "2h" }
     );
 
     return authorization_token;

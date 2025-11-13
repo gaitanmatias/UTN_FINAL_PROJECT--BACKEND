@@ -20,12 +20,17 @@ class AppointmentService {
     // Valida que el usuario no tenga un turno en la misma fecha y hora
     const existingUserAppointment = await AppointmentRepository.findByUserDateTime(userId, date, time);
     if (existingUserAppointment) {
-      throw new Error("Ya tenés un turno reservado en esa fecha y hora.");
+      // Si ya tiene un turno, sea cual sea el estado, no puede crear otro igual
+      throw new Error(
+        existingUserAppointment.status === "cancelled"
+          ? "Ya cancelaste este turno anteriormente. No podés volver a reservarlo."
+          : "Ya tenés un turno reservado en esa fecha y hora."
+      );
     }
 
     // Valida que ningún otro usuario tenga un turno en esa misma fecha y hora
     const conflictingAppointment = await AppointmentRepository.getAppointmentsByDate(date, { time });
-    if (conflictingAppointment.length > 0) {
+    if (conflictingAppointment.filter(a => a.status === "scheduled").length > 0) {
       throw new Error("Ese turno ya está reservado por otro usuario.");
     }
 
@@ -55,30 +60,40 @@ class AppointmentService {
     // Valida que el usuario tenga turnos
     const appointments = await AppointmentRepository.getAppointmentByUserId(userId);
     if (!appointments.length) {
-      throw new Error("No se encontraron turnos para este usuario.");
+      return [];
     }
     return appointments;
   }
 
   /* ----- OBTENER TURNOS POR FECHA ----- */
-  static async getAppointmentsByDate(date, isAdmin) {
+  static async getAppointmentsByDate(date, userId, isAdmin) {
     const appointments = await AppointmentRepository.getAppointmentsByDate(date);
 
-    // Valida que haya turnos para la fecha en caso contrario lanza error
+    // Valida que haya turnos para la fecha en caso contrario devuelve array vacío
     if (!appointments.length) {
-      throw new Error("No se encontraron turnos para la fecha especificada.");
+      return isAdmin ? [] : { scheduled: [], userCanceled: [] };
     }
+    
+    // Si es admin, devuelve todos los turnos con detalles
+    if (isAdmin) {
+      return appointments;
+    }
+    
+    // Turnos programados
+    let scheduledAppointments = appointments.filter(a => a.status === "scheduled");
+    // Turnos cancelados del usuario 
+    let userCanceledAppointments = await AppointmentRepository.getAppointmentsByDate(date, {userId, status: "canceled"});
 
-    // Si NO es admin, devuelve solo la hora (no datos del usuario)
-    if (!isAdmin) {
-      let scheduledAppointments = appointments.filter((a) => a.status === "scheduled");
-      return scheduledAppointments.map((a) => ({
+    return {
+      scheduled: scheduledAppointments.map(a => ({
+        userId: a.userId,
         time: a.time,
-      }));
-    }
-
-    // Si es admin, devuelve todos los detalles
-    return appointments;
+      })),
+      userCanceled: userCanceledAppointments.map(a => ({
+        userId: a.userId,
+        time: a.time,
+      })),
+    };
   }
 
   /* =============== ACTUALIZAR TURNOS =============== */
