@@ -1,0 +1,365 @@
+{
+	"info": {
+		"_postman_id": "e0170675-8a82-4d17-9936-3369f4eb3d91",
+		"name": "Gestor de turnos - UTN",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48374391",
+		"_collection_link": "https://gaitanmatias-7412820.postman.co/workspace/UTN_PROYECTO_FINAL~b343ca01-052c-4198-8822-35d8cadd2491/collection/48374391-e0170675-8a82-4d17-9936-3369f4eb3d91?action=share&source=collection_link&creator=48374391"
+	},
+	"item": [
+		{
+			"name": "APPOINTMENTS",
+			"item": [
+				{
+					"name": "createAppointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "TOKEN DE SESION",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"date\":\"2025-12-25\", \"time\":\"09:30\" }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_API_BACKEND}}/api/appointments",
+							"host": [
+								"{{URL_API_BACKEND}}"
+							],
+							"path": [
+								"api",
+								"appointments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAppointmentsByDate",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "TOKEN DE SESION",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL_API_BACKEND}}/api/appointments/date?date=2025-11-21",
+							"host": [
+								"{{URL_API_BACKEND}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"date"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2025-11-21"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getAppointmentsByUserId",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "TOKEN DE SESION",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{URL_API_BACKEND}}/api/appointments",
+							"host": [
+								"{{URL_API_BACKEND}}"
+							],
+							"path": [
+								"api",
+								"appointments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updateAppointmentById",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "TOKEN DE SESION",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \r\n    \"status\":\"canceled\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_API_BACKEND}}/api/appointments/:appointment-id",
+							"host": [
+								"{{URL_API_BACKEND}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								":appointment-id"
+							],
+							"variable": [
+								{
+									"key": "appointment-id",
+									"value": "ID DEL TURNO A MODIFICAR"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "AUTH",
+			"item": [
+				{
+					"name": "ForgotPassword",
+					"item": [
+						{
+							"name": "forgotPassword",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"tu-email@example.com\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL_API_BACKEND}}/api/auth/forgot-password",
+									"host": [
+										"{{URL_API_BACKEND}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"forgot-password"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "resetPassword",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"newPassword\": \"nuevaContraseña\",\r\n    \"confirmPassword\": \"confirmarContraseña\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL_API_BACKEND}}/api/auth/password-reset/:reset-token",
+									"host": [
+										"{{URL_API_BACKEND}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"password-reset",
+										":reset-token"
+									],
+									"variable": [
+										{
+											"key": "reset-token",
+											"value": "TOKEN DE RESETEO DE CONTRASEÑA"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "EmailVerification",
+					"item": [
+						{
+							"name": "sendEmailVerification",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "TOKEN DE SESION",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{URL_API_BACKEND}}/api/auth/send-email-verification",
+									"host": [
+										"{{URL_API_BACKEND}}"
+									],
+									"path": [
+										"api",
+										"auth",
+										"send-email-verification"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "verifyEmail",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/api/auth/verify-email/:verification_token",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"api",
+										"auth",
+										"verify-email",
+										":verification_token"
+									],
+									"variable": [
+										{
+											"key": "verification_token",
+											"value": "TOKEN DE VERIFICACION"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "REGISTER",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Nombre\",\r\n    \"lastName\": \"Apellido\",\r\n    \"phoneNumber\": \"+541122334455\",\r\n    \"password\": \"Contraseña\",\r\n    \"email\": \"email@example.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_API_BACKEND}}/api/auth/register",
+							"host": [
+								"{{URL_API_BACKEND}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LOGIN",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"email@example.com\",\r\n    \"password\": \"Contraseña\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL_API_BACKEND}}/api/auth/login",
+							"host": [
+								"{{URL_API_BACKEND}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
