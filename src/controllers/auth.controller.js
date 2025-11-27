@@ -67,12 +67,13 @@ class AuthController {
   /* ---------- VERIFY EMAIL ---------- */
   static async verifyEmail(req, res) {
     const { verification_token } = req.params;
-    await AuthService.verifyEmail(verification_token);
+    const authorization_token = await AuthService.verifyEmail(verification_token);
 
     return res.status(200).json({
       ok: true,
       status: 200,
       message: "Verificación de correo exitosa",
+      token: authorization_token
     });
   }
 

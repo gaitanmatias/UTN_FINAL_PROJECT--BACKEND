@@ -119,10 +119,31 @@ class AuthService {
         ENVIRONMENT.JWT_SECRET_KEY
       );
 
-      // Actualiza dato de usuario en la DB (isVerified)
-      await UserRepository.updateUserById(payload.user_id, { isVerified: true });
+      // Verifica si existe el usuario
+      const user = await UserRepository.getUserById(payload.user_id);
+      if (!user) {
+        throw new ServerError(404, "Usuario no encontrado");
+      }
 
-      return true;
+      // Actualiza dato de usuario en la DB (isVerified) y obtiene datos actualizados
+      const updatedUser = await UserRepository.updateUserById(payload.user_id, { isVerified: true });
+
+      // Genera token de autorizacion para datos de sesión
+      const authorization_token = jwt.sign(
+        {
+          id: updatedUser.id,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          email: updatedUser.email,
+          phoneNumber: updatedUser.phoneNumber,
+          isAdmin: updatedUser.isAdmin,
+          isVerified: updatedUser.isVerified,
+        },
+        ENVIRONMENT.JWT_SECRET_KEY,
+        { expiresIn: "2h" }
+      );
+
+      return authorization_token;
 
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
