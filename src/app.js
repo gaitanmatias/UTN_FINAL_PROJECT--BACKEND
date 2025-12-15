@@ -6,7 +6,7 @@ import auth_router from "./routes/auth.router.js";
 import appointment_router from "./routes/appointment.router.js";
 
 import errorHandlerMiddleware from "./middlewares/errorHandler.middleware.js";
-import apiLimiter from "./middlewares/rateLimiter.middleware.js";
+import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
 
 const app = express();
 
