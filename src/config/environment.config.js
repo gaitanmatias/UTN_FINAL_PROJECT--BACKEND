@@ -2,9 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const ENVIRONMENT = {
-   // --- BASE DE DATOS ---
-  MONGO_DB_URI: process.env.MONGO_DB_URI,
+  // --- BASE DE DATOS ---
+  //entorno  
+  NODE_ENV: process.env.NODE_ENV,
   MONGO_DB_URI_PRODUCTION: process.env.MONGO_DB_URI_PRODUCTION,
+  MONGO_DB_URI_LOCAL: process.env.MONGO_DB_URI_LOCAL,
 
   // --- AUTENTICACIÓN / EMAIL ---
   GMAIL_USER: process.env.GMAIL_USER,
