@@ -30,14 +30,16 @@ auth_router.post(
       .notEmpty()
       .withMessage("El nombre es obligatorio")
       .isLength({ min: 3 })
-      .withMessage("El nombre debe tener al menos 3 caracteres"),
+      .withMessage("El nombre debe tener al menos 3 caracteres")
+      .escape(),
 
     body("lastName")
       .trim()
       .notEmpty()
       .withMessage("El apellido es obligatorio")
       .isLength({ min: 3 })
-      .withMessage("El apellido debe tener al menos 3 caracteres"),
+      .withMessage("El apellido debe tener al menos 3 caracteres")
+      .escape(),
 
     body("phoneNumber")
       .trim()
@@ -51,7 +53,8 @@ auth_router.post(
     body("email")
       .trim()
       .isEmail()
-      .withMessage("Debe ingresar un email válido"),
+      .withMessage("Debe ingresar un email válido")
+      .normalizeEmail(),
 
     body("password")
       .isLength({ min: 8 })
@@ -66,13 +69,14 @@ auth_router.post(
   authLimiter,
   [
     body("email")
-    .trim()
-    .isEmail()
-    .withMessage("Debe ingresar un email válido"),
+      .trim()
+      .isEmail()
+      .withMessage("Debe ingresar un email válido")
+      .normalizeEmail(),
 
     body("password")
-    .notEmpty()
-    .withMessage("Debe ingresar una contraseña"),
+      .notEmpty()
+      .withMessage("Debe ingresar una contraseña"),
   ],
   AuthController.login
 );
@@ -86,13 +90,14 @@ auth_router.post(
   emailLimiter,
   AuthController.sendEmailVerification
 );
+
 /* ---------- RUTA: VERIFY_EMAIL ---------- */
 auth_router.get(
   "/verify-email/:verification_token",
   [
     param("verification_token")
-    .notEmpty()
-    .withMessage("El token de verificación es obligatorio"),
+      .notEmpty()
+      .withMessage("El token de verificación es obligatorio"),
   ],
   AuthController.verifyEmail
 );
@@ -105,9 +110,10 @@ auth_router.post(
   emailLimiter,
   [
     body("email")
-    .trim()
-    .isEmail()
-    .withMessage("Debe ingresar un email válido")
+      .trim()
+      .isEmail()
+      .withMessage("Debe ingresar un email válido")
+      .normalizeEmail(),
   ],
   AuthController.forgotPassword
 );

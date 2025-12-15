@@ -21,6 +21,7 @@ appointment_router.get(
   authMiddleware,
   [
     query("date")
+      .trim()
       .exists()
       .withMessage("Debe especificar la fecha del turno")
       .matches(/^\d{4}-\d{2}-\d{2}$/)
@@ -72,6 +73,7 @@ appointment_router.put(
     
     body("status")
       .optional()
+      .trim()
       .isIn(["scheduled", "completed", "canceled"])
       .withMessage("Estado de turno inválido"),
   ],

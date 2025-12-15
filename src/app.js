@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 
 import auth_router from "./routes/auth.router.js";
 import appointment_router from "./routes/appointment.router.js";
@@ -10,6 +11,7 @@ import apiLimiter from "./middlewares/rateLimiter.middleware.js";
 const app = express();
 
 // Middlewares globales
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
