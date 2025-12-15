@@ -4,36 +4,26 @@
 // - Inicio de sesión
 // - Verificación de email
 // - Recuperación y restablecimiento de contraseña
-// Aplica validaciones de datos y límites de peticiones para evitar abusos.
+// Aplica validaciones de datos y límites de peticiones.
 
 // Dependencias externas
 import { Router } from "express";
 import { body, param } from "express-validator";
-import rateLimit from "express-rate-limit";
+
+// Middlewares
+import authMiddleware from "../middlewares/auth.middleware.js";
+import { authLimiter, emailLimiter } from "../middlewares/rateLimiter.middleware.js";
 
 // Controladores
 import AuthController from "../controllers/auth.controller.js";
 
-// Middlewares
-import authMiddleware from "../middlewares/auth.middleware.js";
-
-// Función para definir el límite de solicitudes en un intervalo de tiempo
-const createRateLimiter = (maxRequests, timeInterval) =>
-  rateLimit({
-    windowMs: timeInterval * 60 * 1000, // Tiempo de espera
-    max: maxRequests, // Limite de solicitudes
-    message: {
-      ok: false,
-      message: "Demasiadas solicitudes. Intenta más tarde.",
-    },
-  });
 
 const auth_router = Router();
 /* =============== REGISTRO E INICIO DE SESIÓN =============== */
 /* ---------- RUTA: REGISTER ---------- */
 auth_router.post(
   "/register",
-  createRateLimiter(10, 5),
+  authLimiter,
   [
     body("firstName")
       .trim()
@@ -73,7 +63,7 @@ auth_router.post(
 /* ---------- RUTA: LOGIN ---------- */
 auth_router.post(
   "/login",
-  createRateLimiter(10, 5),
+  authLimiter,
   [
     body("email")
     .trim()
@@ -93,7 +83,7 @@ auth_router.post(
 auth_router.post(
   "/send-email-verification",
   authMiddleware,
-  createRateLimiter(3, 5),
+  emailLimiter,
   AuthController.sendEmailVerification
 );
 /* ---------- RUTA: VERIFY_EMAIL ---------- */
@@ -112,7 +102,7 @@ auth_router.get(
 /* ---------- RUTA: FORGOT_PASSWORD ---------- */
 auth_router.post(
   "/forgot-password",
-  createRateLimiter(3, 5),
+  emailLimiter,
   [
     body("email")
     .trim()

@@ -1,11 +1,10 @@
 // ========================== APPOINTMENT ROUTER ==========================
 // Define las rutas relacionadas con la colección de turnos.
-// Aplica validaciones de datos y límites de peticiones para evitar abusos.
+// Aplica validaciones de datos.
 
 // Dependencias externas
 import { Router } from "express";
 import { body, param, query } from "express-validator";
-import rateLimit from "express-rate-limit";
 
 // Middlewares
 import authMiddleware from "../middlewares/auth.middleware.js";
@@ -13,16 +12,6 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 // Controladores
 import AppointmentController from "../controllers/appointment.controller.js";
 
-// Función para definir el límite de solicitudes en un intervalo de tiempo
-const createRateLimiter = (maxRequests, timeInterval) =>
-  rateLimit({
-    windowMs: timeInterval * 60 * 1000, // Tiempo de espera
-    max: maxRequests, // Limite de solicitudes
-    message: {
-      ok: false,
-      message: "Demasiadas solicitudes. Intenta más tarde.",
-    },
-  });
 
 const appointment_router = Router();
 // =============== RUTA: GET/api/appointments/date ===============
@@ -30,7 +19,6 @@ const appointment_router = Router();
 appointment_router.get(
   "/date", 
   authMiddleware,
-  createRateLimiter(10, 5),
   [
     query("date")
       .exists()
@@ -46,7 +34,6 @@ appointment_router.get(
 appointment_router.get(
   "/", 
   authMiddleware,
-  createRateLimiter(10, 5),
   AppointmentController.getUserAppointments
 );
 
@@ -55,7 +42,6 @@ appointment_router.get(
 appointment_router.post(
   "/", 
   authMiddleware,
-  createRateLimiter(5, 5),
   [
     body("date")
       .trim()
@@ -79,7 +65,6 @@ appointment_router.post(
 appointment_router.put(
   "/:appointmentId", 
   authMiddleware,
-  createRateLimiter(5, 5),
   [
     param("appointmentId")
       .isMongoId()
